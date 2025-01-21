@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #eda540;
+        }
+        .login-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 6px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .link-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        a {
+            color: #3a70c8;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>Página de Login</h2>
+        <form action="#" method="post">
+            <label for="usuario">Nome de Usuário:</label>
+            <input type="text" id="usuario" name="usuario" placeholder="Digite seu nome de usuário" required>
+            <button type="submit">Concluir</button>
+        </form>
+        
+        <div class="link-container">
+            
+            <a href="../index.html">Página do Inventário</a>
+            
+            <a href="paginasCadastramento.html">
+                <button class="login-button">Cadastrar algo</button>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventário</title>
+    <link rel="stylesheet" href="../../style/estilo.css">
+</head>
+
+<body>
+    <form id="formEquipamento">
+        <label for="tipo">Tipo do Equipamento:</label>
+        <input type="text">
+        <br> <br>
+
+        <button type="button">Cadastrar</button>
+        <button class="equipamento" id="btnListarEquipamentos" type="button">Listar</button>
+    </form>
+
+    <!--Fluxo básico de Botões-->
+    <a href="../login.html">
+        <button class="login-button">Fazer login/Registrar-se</button>
+    </a>
+    <br> <br>
+
+    <a href="../../index.html">
+        <button class="login-button">Ir para o inventário</button>
+    </a>
+    <br> <br>
+
+    <a href="../paginasCadastramento.html">
+        <button class="login-button">Voltar</button>
+    </a>
+    <br> <br>
+
+    <table id="listar"></table>
+    <script src="../../rendererEquipamentos.js"></script>
+</body>
+</html>

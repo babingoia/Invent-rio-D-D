@@ -1,0 +1,213 @@
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventário</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #eda540;
+            flex-direction: column;
+        }
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            margin-bottom: 30px;
+        }
+        .button-container {
+            display: flex;
+            gap: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #fff;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #f0f0f0;
+        }
+        .table-container {
+            display: none;
+            margin-top: 20px;
+            width: 80%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 15% / 6%;
+            overflow: hidden;
+        }
+        .table-container table {
+            width: 100%;
+            border: 1px solid #ccc;
+        }
+        .table-container th, .table-container td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .table-container th {
+            background-color: #f4f4f4;
+        }
+        .total-container {
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+        .login-button {
+            margin-top: 30px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #fff;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .login-button:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inventário</h1>
+    <div class="button-container">
+        <button id="abrirMochila">Abrir mochila</button>
+        <button id="abrirItensEquipados">Itens equipados</button>
+    </div>
+
+    <div id="MochilaTabela" class="table-container">
+        <h2>Mochila</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantidade</th>
+                    <th>Peso (em kg)</th>
+                    <th>Descrição</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="item">
+                    <td>Adaga</td>
+                    <td>1</td>
+                    <td class="peso">0.5</td>
+                    <td>Acuidade, leve, arremesso (distância 6/18) // 1d4 de dano perfurante</td>
+                </tr>
+                <tr class="item">
+                    <td>Corrente</td>
+                    <td>2</td>
+                    <td class="peso">5</td>
+                    <td>Cada uma das correntes tem 3 metros de comprimento</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="ItensEquipadosTabela" class="table-container">
+        <h2>Itens Equipados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantidade</th>
+                    <th>Peso (em kg)</th>
+                    <th>Descrição</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="item">
+                    <td>Escudo</td>
+                    <td>1</td>
+                    <td class="peso">3</td>
+                    <td>O Escudo aumenta a CA em +2</td>
+                </tr>
+                <tr class="item">
+                    <td>Armadura de Couro</td>
+                    <td>1</td>
+                    <td class="peso">5</td>
+                    <td>CA da Armadura de Couro: 11 + modificador de Destreza</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="total-container">
+        <span>Peso total: </span><span id="pesoTotal">0</span> kg
+    </div>
+
+    <a href="Views/login.html">
+        <button class="login-button">Fazer login/Registrar-se</button>
+    </a>
+
+    <a href="Views/paginasCadastramento.html">
+        <button class="login-button">Cadastrar novo item</button>
+    </a>
+
+    <script>
+        const abrirMochila = document.getElementById('abrirMochila');
+        const abrirItensEquipados = document.getElementById('abrirItensEquipados');
+        const MochilaTabela = document.getElementById('MochilaTabela');
+        const ItensEquipadosTabela = document.getElementById('ItensEquipadosTabela');
+        const pesoTotalDisplay = document.getElementById('pesoTotal');
+
+        function calcularPesoTotal() {
+            let pesoTotal = 0;
+
+            const itensMochila = MochilaTabela.querySelectorAll('.item');
+            itensMochila.forEach(item => {
+                const quantidade = parseInt(item.cells[1].textContent);
+                const peso = parseFloat(item.querySelector('.peso').textContent);
+                pesoTotal += quantidade * peso;
+            });
+
+            const itensEquipados = ItensEquipadosTabela.querySelectorAll('.item');
+            itensEquipados.forEach(item => {
+                const quantidade = parseInt(item.cells[1].textContent);
+                const peso = parseFloat(item.querySelector('.peso').textContent);
+                pesoTotal += quantidade * peso;
+            });
+
+            pesoTotalDisplay.textContent = pesoTotal.toFixed(2);
+        }
+
+        abrirMochila.addEventListener('click', function() {
+            if (MochilaTabela.style.display === 'none') {
+                MochilaTabela.style.display = 'block';
+                abrirMochila.textContent = 'Fechar mochila';
+                ItensEquipadosTabela.style.display = 'none';
+                abrirItensEquipados.textContent = 'Itens equipados';
+            } else {
+                MochilaTabela.style.display = 'none';
+                abrirMochila.textContent = 'Abrir mochila';
+            }
+
+            calcularPesoTotal();
+        });
+
+        abrirItensEquipados.addEventListener('click', function() {
+            if (ItensEquipadosTabela.style.display === 'none') {
+                ItensEquipadosTabela.style.display = 'block';
+                MochilaTabela.style.display = 'none';
+                abrirMochila.textContent = 'Abrir mochila';
+            } else {
+                ItensEquipadosTabela.style.display = 'none';
+                abrirMochila.textContent = 'Abrir mochila';
+            }
+
+            calcularPesoTotal();
+        });
+
+        calcularPesoTotal();
+    </script>
+</body>
+</html>
