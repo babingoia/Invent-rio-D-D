@@ -2,6 +2,7 @@ const { log } = require('console');
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const SQL = require('sqlite3').verbose();
+const fs = require('fs');
 
 function create_window(){
     const win = new BrowserWindow({
@@ -19,7 +20,24 @@ function create_window(){
     win.webContents.openDevTools();
 }
 
-let db = new SQL.Database('./db/inventario.db');
+function criar_backup(){
+    const dbPath = './db/mochilao.db';
+    const pastaBackups = './db/Backups';
+
+    const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
+    const backupPath = path.join(pastaBackups, `inventario_backup_${timestamp}.db`);
+
+    fs.copyFile(dbPath, backupPath, (err) => {
+        if (err){
+            console.log('Erro ao criar backup', err);
+        } else {
+            console.log('Backup criado com sucesso!', backupPath);
+        }
+    });
+}
+
+//let db = new SQL.Database('./db/mochilao.db');
+let db = new SQL.Database('./db/testes.db');
 
 ipcMain.on('getTipos', (event, data) => {
 
@@ -47,12 +65,36 @@ ipcMain.on('getTipos', (event, data) => {
     });
 })
 
-ipcMain.on('inserir', (event, data) => {
+ipcMain.on('inserir-item', (event, data) => {
     console.log('Iniciando compilação do comando sql...', data);
     
-    let comando = `INSERT INTO itens (nome, preco, peso, descricao) VALUES (?, ?, ?, ?)`;
-    const valores_item = [data.nome, data.preco, data.peso, data.descricao];
-    db.run(comando, valores_item);
+    let valores_consulta = [];
+    let colunas_consulta = [];
+
+    let dataCopia = { ...data };
+    let regex = /\b(id(_\w*)?)\b/i;
+    
+    Object.keys(dataCopia).forEach(chave => {
+        
+        if (regex.test(chave)){
+            delete dataCopia[chave];
+            return;
+        }
+        
+        colunas_consulta.push(chave);
+        valores_consulta.push(dataCopia[chave]);
+    });
+
+    console.log("Sua data ficou assim:", dataCopia);
+
+    let colunas = colunas_consulta.join(', ');
+    let placeholders = colunas_consulta.map(() => '?').join(', ');
+    
+    let comando = `INSERT INTO itens (${colunas}) VALUES (${placeholders})`;
+
+    console.log('Comando montado.', comando);
+    
+    db.run(comando, valores_consulta);
 
     console.log("Item inserido com sucesso! Procurando id do item...")
     
@@ -105,6 +147,7 @@ ipcMain.on('list-some-items', (event, tabela) => {
 
 app.whenReady().then(() => {
     create_window();
+    criar_backup();
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0){

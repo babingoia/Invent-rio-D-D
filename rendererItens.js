@@ -46,7 +46,7 @@ btnCadastrar.addEventListener('click', () => {
     });
     console.log(data);
         
-    window.api.inserir(data);
+    window.api.inserirItem(data);
 });
 
 btnListarItens.addEventListener('click', () => listarAlgunsItems(btnListarItens.className));

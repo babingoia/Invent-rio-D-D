@@ -2,7 +2,7 @@ const {contextBridge, ipcRenderer } =  require('electron');
 
 contextBridge.exposeInMainWorld(
     'api', {
-        inserir: (data) => ipcRenderer.send('inserir', data),
+        inserirItem: (data) => ipcRenderer.send('inserir-item', data),
         listAllItems: () => ipcRenderer.send('list-all-items'),
         listSomeItems: (tabela) => ipcRenderer.send('list-some-items', tabela),
         getTipos: (data) => ipcRenderer.send('getTipos', data)
