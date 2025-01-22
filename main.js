@@ -75,33 +75,138 @@ function ligar_tabelas(id_item, id_tipo, tabela){
         });
 };
 
-let db = new SQL.Database('./db/mochilao.db');
-//let db = new SQL.Database('./db/testes.db');
+function pegar_id(tabela, placeholder){
+    let comando = `SELECT id FROM ${tabela} WHERE ${placeholder}`;
 
-ipcMain.on('getTipos', (event, data) => {
+    db.get(comando, [], (err, row) => {
+        
+        if (err){
+            console.log('Erro ao tentar obter ID.', err.message);
+            return;
+        }
 
-    console.log('Montando comando SQL...', data);
+        if (!row){
+            console.log("id não existente.");
+            return;
+        }
+
+        console.log('ID adquirido com sucesso!');
+        return row;
+    })
+}
+
+function pegar_tabelas_estrangeiras(data){
+    console.log('Checando chaves estrangeiras...');
     
-    const comando_selecionar_colunas = `SELECT * FROM ${data};`;
+    let comando = `PRAGMA foreign_key_list(${data});`;
+
+    return new Promise((resolve, reject) => {
+        db.all(comando, [], function(err, rows) {
+        
+            if (err){
+                console.log('erro ao tentar adquirir lista de chaves estrangeiras.', err.message);
+                reject(err);
+                return;
+            }
+    
+            if (!rows || rows.length === 0) {
+                console.log('Sem chaves estrangeiras nessa tabela.');
+                resolve([]);
+                return;
+            }
+
+            console.log('Chaves estrangeiras adquiridas.', rows);
+            
+            let promisses = rows.map(row => {
+                return new Promise((resolve, reject) => {
+                    console.log('Obtendo dados da chave...');
+                
+                    comando = `SELECT * FROM ${row.table};`;
+                
+                    db.all(comando, [], (err, rowsTabela) =>{
+                    
+                        if(err){
+                            console.log('Erro ao adquirir tabela da chave.', err.message);
+                            reject(err);
+                            return;
+                        }
+        
+                        if(!rowsTabela || rows.length === 0){
+                            console.log('Não existem informações nessa tabela.');
+                            resolve(null);
+                        } else{
+                            console.log('Dados da tabela adquiridos.');
+                            resolve({ table: row.table, data: rowsTabela });
+                        }
+                    });
+                });
+                
+            });
+
+            Promise.all(promisses).then(results => {
+                let tabelas = results.filter(result => result !== null);
+                resolve(tabelas);
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    });
+}
+
+function adquirir_dados(tabela){
+    console.log('Montando comando SQL...', tabela);
+    
+    comando = `SELECT * FROM ${tabela};`;
 
     console.log('Rodando comando no banco...');
 
-    db.all(comando_selecionar_colunas, [], (err, tipos) => {
+    return new Promise((resolve, reject) => {
+        db.all(comando, [], (err, tipos) => {
         
-        if (err){
-            console.log('Erro ao adquirir tipos', err);
-            return;
-        }
-
-        if (!tipos){
-            console.log('Nenhum tipo encontrado.');
-            return;
-        }
-
-        console.log('Colunas adquiridas:', tipos);
+            if (err){
+                console.log('Erro ao adquirir tipos', err);
+                reject(err);
+                return;
+            }
     
-        event.reply('getTipos-response', tipos);
+            if (!tipos){
+                console.log('Nenhum tipo encontrado.');
+                resolve([]);
+                return;
+            }
+    
+            console.log('Colunas adquiridas:', tipos);
+            resolve(tipos);
+        });
+    })
+}
+
+//let db = new SQL.Database('./db/mochilao.db');
+let db = new SQL.Database('./db/testes.db');
+
+ipcMain.on('getTipos', (event, data) => {
+    
+    let tabelas = pegar_tabelas_estrangeiras(data);
+    let resultado = [];
+
+    tabelas.then(tabelas => {
+        console.log('Tabelas com chaves estrangeiras:', tabelas);
+        let promisses = tabelas.map(tabela => adquirir_dados(tabela.table));
+            Promise.all(promisses).then(resultado => {
+                console.log('dados adquiridos de todas as tabelas:', resultado);
+                event.reply('getTipos-response', resultado);
+            }).catch(err => {
+                console.error('Erro ao adquirir dados das tabelas:', err); 
+                event.reply('getTipos-response', []);
+            });
+        }).catch(err => {
+        console.error('Erro:', err); 
+        event.reply('getTipos-response', []);
     });
+
+
+
+    event.reply('getTipos-response', resultado);
 })
 
 ipcMain.on('inserir-item', (event, data) => {
