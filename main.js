@@ -4,6 +4,18 @@ const path = require('path');
 const SQL = require('sqlite3').verbose();
 const fs = require('fs');
 
+/* 
+Lembrar de deixar as tabelas no sql seguindo o seguinte padrão:
+
+-> Ligação = nomeTabela1_nomeTabela2
+-> Sempre deixar as tabelas no plural
+-> ids da tabela de ligação refernciam a tabela original no singular. id_nomeTabelaOriginal
+
+Comando pra empacotar com electrum:
+
+-> electron-packager . inventario --platform=win32 --arch=x64 --out=Executavel/ --overwrite
+*/
+
 function create_window(){
     const win = new BrowserWindow({
         width: 800,
@@ -36,8 +48,35 @@ function criar_backup(){
     });
 }
 
-//let db = new SQL.Database('./db/mochilao.db');
-let db = new SQL.Database('./db/testes.db');
+function ligar_tabelas(id_item, id_tipo, tabela){
+    comando = `SELECT name FROM sqlite_master WHERE type='table' AND name=?;`;
+
+        db.get(comando, [tabela], (err, row) => {
+
+            if (err){
+                console.log('Erro ao verificar a tabela de ligação.', err);
+                return;
+            
+            } else if (row){
+                console.log('Tabela de Ligação encontrada.');
+
+                comando = `INSERT INTO ${tabela} VALUES (?, ?);`;
+
+                db.run(comando, [id_item, id_tipo], (err) => {
+                    if (err){
+                        console.log('Erro ao tentar inserir valores na tabela de ligação.', err.message);
+                        return;
+                    }
+                    console.log('Ligação realizada com sucesso!');
+                });
+            } else {
+                console.log("Tabela de ligação não encontrada.");
+            }
+        });
+};
+
+let db = new SQL.Database('./db/mochilao.db');
+//let db = new SQL.Database('./db/testes.db');
 
 ipcMain.on('getTipos', (event, data) => {
 
@@ -73,6 +112,7 @@ ipcMain.on('inserir-item', (event, data) => {
 
     let dataCopia = { ...data };
     let regex = /\b(id(_\w*)?)\b/i;
+    delete dataCopia['categoria'];
     
     Object.keys(dataCopia).forEach(chave => {
         
@@ -94,25 +134,25 @@ ipcMain.on('inserir-item', (event, data) => {
 
     console.log('Comando montado.', comando);
     
-    db.run(comando, valores_consulta);
-
-    console.log("Item inserido com sucesso! Procurando id do item...")
-    
-    db.get(`SELECT id FROM itens WHERE nome=? AND preco=? AND peso=? AND descricao=?;`,valores_item, (err, id_item) => {
+    db.run(comando, valores_consulta, function(err) {
+        
         if (err){
-            console.log('Erro ao tentar capturar id do item.', err)
+            console.log('Erro ao executar comando.', err.message);
+            return;
+        }
+        
+        console.log("Item inserido com sucesso! Procurando id do item...")
+
+        if(data.categoria === ''){
             return;
         }
 
-        if(!id_item){
-            console.log('Id de item não encontrada.')
-            return;
-        }
+        let id_item = this.lastID;
+        let tabelaLigacao = `itens_${data.categoria}`;
 
-        console.log('Id do item pego com sucesso! Iniciando ligação...', id_item);
+        console.log(id_item);
 
-        comando = `INSERT INTO itens_${data.categoria} VALUES (?, ?);`
-        db.run(comando, [id_item.id, data.id_tipo]);
+        ligar_tabelas(id_item, data.id_tipo, tabelaLigacao);
     });
 });
 

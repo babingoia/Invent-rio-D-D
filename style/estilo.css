@@ -50,3 +50,7 @@ button:hover {
 .table-container th {
     background-color: #f4f4f4;
 }
+
+.escondido{
+    display: none;
+}

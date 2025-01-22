@@ -6,31 +6,33 @@
     <link rel="stylesheet" href="../../style/estilo.css">
 </head>
 <body>
-    <form id="formItem">
 
-        <select name="categoria" id="slcCategoria">
-            <option value="" disabled selected>Selecione uma Categoria</option>
-            <option value="equipamento">Equipamento</option>
-            <option value="armas">Arma</option>
-            <option value="armaduras">Armadura</option>
-            <option value="recipientes">Recipiente</option>
-            <option value="montarias">Montaria</option>
-        </select>    
-        <br> <br>
+    <label for="categoria">Categoria do Item:</label>
+    <br> <br>
 
-        <select name="tipos" id="slcTipos" >
-            <option value="" disabled selected>Selecione o Tipo</option>
-        </select>
-        <table id="tiposInfo">
-            <tr id="cabecalho"></tr>
-        </table>
-        <br> <br>
+    <select name="categoria" id="slcCategoria">
+        <option value="" disabled selected>Selecione uma Categoria</option>
+        <option value="">Nenhuma</option>
+        <option value="equipamento">Equipamento</option>
+        <option value="armas">Arma</option>
+        <option value="armaduras">Armadura</option>
+        <option value="recipientes">Recipiente</option>
+        <option value="montarias">Montaria</option>
+    </select>    
+    <br> <br>
+
+    <select name="tipos" id="slcTipos" class="escondido">
+        <option value="" disabled selected>Selecione o Tipo</option>
+    </select>
+    <table id="tiposInfo">
+        <tr id="cabecalho"></tr>
+    </table>
+    <br> <br>
+
+    <form id="formItem" class="escondido">
 
         <label for="nome">Nome:</label>
         <input type="text" name="nome" id="inptNome">
-        <br> <br>
-
-        <label for="categoria">Categoria do Item:</label>
         <br> <br>
 
         <label for="preco">Preço:</label>
@@ -46,26 +48,30 @@
         <br> <br>
 
         <button id="btnCadastrar" type="button">Cadastrar Item</button>
+        <br> <br>
         <button class="itens" id="btnListarItens" type="button">Listar</button>
         <br> <br>
     </form>
 
-    <a href="../login.html">
-        <button class="login-button">Fazer login/Registrar-se</button>
-    </a>
-    <br> <br>
+    <div>
+        <a href="../login.html">
+            <button class="login-button">Fazer login/Registrar-se</button>
+        </a>
+        <br> <br>
 
-    <a href="../../index.html">
-        <button class="login-button">Ir para o inventário</button>
-    </a>
-    <br> <br>
+        <a href="../../index.html">
+            <button class="login-button">Ir para o inventário</button>
+        </a>
+        <br> <br>
 
-    <a href="../paginasCadastramento.html">
-        <button class="login-button">Voltar</button>
-    </a>
-    <br> <br>
+        <a href="../paginasCadastramento.html">
+            <button class="login-button">Voltar</button>
+        </a>
+        <br> <br>
 
-    <table id="listar"></table>
+        <table id="listar"></table>
+    </div>
+
     <script src="../../rendererItens.js"></script>
 </body>
 </html>
