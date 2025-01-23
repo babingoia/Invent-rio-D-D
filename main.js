@@ -32,6 +32,11 @@ function create_window(){
     win.webContents.openDevTools();
 }
 
+function db_reload(){
+    db.close();
+    db = new SQL.Database('./db/testes.db')
+}
+
 function criar_backup(){
     const dbPath = './db/mochilao.db';
     const pastaBackups = './db/Backups';
@@ -55,6 +60,7 @@ function ligar_tabelas(id_item, id_tipo, tabela){
 
             if (err){
                 console.log('Erro ao verificar a tabela de ligação.', err);
+                db_reload();
                 return;
             
             } else if (row){
@@ -65,38 +71,20 @@ function ligar_tabelas(id_item, id_tipo, tabela){
                 db.run(comando, [id_item, id_tipo], (err) => {
                     if (err){
                         console.log('Erro ao tentar inserir valores na tabela de ligação.', err.message);
+                        db_reload();
                         return;
                     }
                     console.log('Ligação realizada com sucesso!');
                 });
             } else {
                 console.log("Tabela de ligação não encontrada.");
+                db_reload();
             }
         });
 };
 
-function pegar_id(tabela, placeholder){
-    let comando = `SELECT id FROM ${tabela} WHERE ${placeholder}`;
-
-    db.get(comando, [], (err, row) => {
-        
-        if (err){
-            console.log('Erro ao tentar obter ID.', err.message);
-            return;
-        }
-
-        if (!row){
-            console.log("id não existente.");
-            return;
-        }
-
-        console.log('ID adquirido com sucesso!');
-        return row;
-    })
-}
-
 function pegar_tabelas_estrangeiras(data){
-    console.log('Checando chaves estrangeiras...');
+    console.log('Checando chaves estrangeiras...', data);
     
     let comando = `PRAGMA foreign_key_list(${data});`;
 
@@ -106,6 +94,7 @@ function pegar_tabelas_estrangeiras(data){
             if (err){
                 console.log('erro ao tentar adquirir lista de chaves estrangeiras.', err.message);
                 reject(err);
+                db_reload();
                 return;
             }
     
@@ -128,6 +117,7 @@ function pegar_tabelas_estrangeiras(data){
                         if(err){
                             console.log('Erro ao adquirir tabela da chave.', err.message);
                             reject(err);
+                            db_reload();
                             return;
                         }
         
@@ -148,6 +138,7 @@ function pegar_tabelas_estrangeiras(data){
                 resolve(tabelas);
             }).catch(err => {
                 reject(err);
+                db_reload();
             });
         });
     });
@@ -166,6 +157,7 @@ function adquirir_dados(tabela){
             if (err){
                 console.log('Erro ao adquirir tipos', err);
                 reject(err);
+                db_reload();
                 return;
             }
     
@@ -185,28 +177,37 @@ function adquirir_dados(tabela){
 let db = new SQL.Database('./db/testes.db');
 
 ipcMain.on('getTipos', (event, data) => {
-    
+
+    let obj_data = {table: data};
     let tabelas = pegar_tabelas_estrangeiras(data);
     let resultado = [];
+    let nomes_tabelas = [];
 
     tabelas.then(tabelas => {
+        
         console.log('Tabelas com chaves estrangeiras:', tabelas);
+        tabelas.push(obj_data);
+
+        tabelas.forEach(tabela => {
+            nomes_tabelas.push(tabela.table);
+        });
+
         let promisses = tabelas.map(tabela => adquirir_dados(tabela.table));
             Promise.all(promisses).then(resultado => {
-                console.log('dados adquiridos de todas as tabelas:', resultado);
-                event.reply('getTipos-response', resultado);
+                
+                console.log('dados adquiridos de todas as tabelas:', [resultado, nomes_tabelas]);
+                event.reply('getTipos-response', [resultado, nomes_tabelas]);
+
             }).catch(err => {
                 console.error('Erro ao adquirir dados das tabelas:', err); 
+                db_reload();
                 event.reply('getTipos-response', []);
             });
         }).catch(err => {
         console.error('Erro:', err); 
+        db_reload()
         event.reply('getTipos-response', []);
     });
-
-
-
-    event.reply('getTipos-response', resultado);
 })
 
 ipcMain.on('inserir-item', (event, data) => {
@@ -216,16 +217,10 @@ ipcMain.on('inserir-item', (event, data) => {
     let colunas_consulta = [];
 
     let dataCopia = { ...data };
-    let regex = /\b(id(_\w*)?)\b/i;
+    delete dataCopia['ids'];
     delete dataCopia['categoria'];
     
     Object.keys(dataCopia).forEach(chave => {
-        
-        if (regex.test(chave)){
-            delete dataCopia[chave];
-            return;
-        }
-        
         colunas_consulta.push(chave);
         valores_consulta.push(dataCopia[chave]);
     });
@@ -243,6 +238,7 @@ ipcMain.on('inserir-item', (event, data) => {
         
         if (err){
             console.log('Erro ao executar comando.', err.message);
+            db_reload()
             return;
         }
         
@@ -253,20 +249,40 @@ ipcMain.on('inserir-item', (event, data) => {
         }
 
         let id_item = this.lastID;
-        let tabelaLigacao = `itens_${data.categoria}`;
+        console.log(id_item, Object.keys(data.ids));
 
-        console.log(id_item);
+        //ids sem chave estrangeira nem ligação
+        if (data.ids === null){
+            return;
+        }
+        //ids que consegue ser ligado
+        Object.keys(data.ids).forEach(chave => {
+            let tabelaLigacao = `itens_${chave}`;
+            console.log(tabelaLigacao);
+            
+            ligar_tabelas(id_item, data.ids[chave], tabelaLigacao);
+        });
 
-        ligar_tabelas(id_item, data.id_tipo, tabelaLigacao);
+        //ids com chaves estrangeiras
+        let colunas = Object.keys(data.ids).map(coluna => `id_${coluna}`).join(', ');
+        let placeholder = Object.values(data.ids).map( () => '?').join(', ')
+        comando = `INSERT INTO ${data.categoria} (${colunas}) VALUES (${placeholder});`;
+
+        db.run(comando, Object.values(data.ids), (err) =>{
+            if (err){
+                console.log("erro ao adicionar chave estrangeira.", err.message);
+                db_reload();
+                return;
+            }
+        })
     });
 });
-
-
 
 ipcMain.on('list-all-items', (event) => {
     console.log('Inserindo comando sql...');
     db.all('SELECT * FROM itens;', [], (erro, dados) => {
         if (erro){
+            db_reload();
             throw erro;
         }
         event.reply('list-all-items-response', dados);
@@ -278,6 +294,7 @@ ipcMain.on('list-some-items', (event, tabela) => {
     console.log('Inserindo comando sql...', tabela);
     db.all(`SELECT * FROM ${tabela} ORDER BY id DESC LIMIT 5;`, [], (erro, dados) => {
         if (erro){
+            db_reload();
             throw erro;
         }
 

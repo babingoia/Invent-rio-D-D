@@ -4,6 +4,7 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
+    margin-top: 128px;
     font-family: Arial, sans-serif;
     background-color: #eda540;
     flex-direction: column;

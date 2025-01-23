@@ -14,14 +14,54 @@ function deletarScraps(){
     });
 };
 
+function verificar_selects(selects){
+    let i = 0;
+    const quantidade_selects = selects.length;
+
+    selects.forEach(select =>{
+        select.addEventListener('change', () => {
+            if (!select.classList.contains('escondido')){
+                ids[select.id] = select.value;
+                i++;
+                select.setAttribute('class', 'escondido');
+
+                if (i === quantidade_selects){
+                    console.log(ids);
+                    deletarScraps();
+                    form.removeAttribute('class', 'escondido');
+                }
+            }
+        });
+    });
+}
+
 //Elementos da página
-let id_item = '';
+let ids = {};
 const btnCadastrar = document.querySelector('#btnCadastrar');
 const btnListarItens = document.querySelector('#btnListarItens');
 const form = document.querySelector('#formItem');
 const listar = document.querySelector('#listar');
 const slcCategoria = document.querySelector('#slcCategoria');
 const slcTipos = document.querySelector('#slcTipos');
+const tiposInfo = document.querySelector('#tiposInfo');
+
+//Outras variaveis
+const config_mutation = {
+    childList: true,
+    subtree: true
+}
+const observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation =>{
+        mutation.addedNodes.forEach(node =>{
+            if (node.nodeType === 1 && node.tagName.toLowerCase() === 'select'){
+                console.log('Select criado:', node);
+                
+                const selects = tiposInfo.querySelectorAll('select');
+                verificar_selects(selects);
+            }
+        });
+    });
+});
 
 //Chamadas de API
 slcCategoria.addEventListener('change', () => {
@@ -31,19 +71,17 @@ slcCategoria.addEventListener('change', () => {
     console.log('Colunas deletadas. Iniciando chamada de novas colunas...', slcCategoria.value);
     window.api.getTipos(slcCategoria.value);
 
-    slcTipos.removeAttribute('class', 'escondido');
     slcCategoria.setAttribute('class', 'escondido');
 
     if (!slcCategoria.value){
         deletarScraps();
-        slcTipos.setAttribute('class', 'escondido');
         form.removeAttribute('class', 'escondido');
     }
 });
 
 btnCadastrar.addEventListener('click', () => {
     let data = {
-        id_tipo: id_item,
+        ids: ids,
         categoria: slcCategoria.value
     };
 
@@ -63,15 +101,19 @@ btnCadastrar.addEventListener('click', () => {
 });
 
 btnListarItens.addEventListener('click', () => listarAlgunsItems(btnListarItens.className));
+observer.observe(tiposInfo, config_mutation);
+
 
 //Movimento
 
+/*
 slcTipos.addEventListener('change', () => {
     id_item = slcTipos.value;
     
     deletarScraps();
     slcTipos.setAttribute('class', 'escondido');
-    form.removeAttribute('class', 'escondido');
+    
 
     return id_item;
-})
+});
+*/
