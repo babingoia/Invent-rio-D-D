@@ -173,8 +173,8 @@ function adquirir_dados(tabela){
     })
 }
 
-//let db = new SQL.Database('./db/mochilao.db');
-let db = new SQL.Database('./db/testes.db');
+let db = new SQL.Database(path.join(__dirname, 'db/mochilao.db'));
+//let db = new SQL.Database('./db/testes.db');
 
 ipcMain.on('getTipos', (event, data) => {
 
