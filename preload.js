@@ -1,127 +1,96 @@
+//Libs
 const {contextBridge, ipcRenderer } =  require('electron');
 
+//Variveis globais
+
+//Chamadas da API
 contextBridge.exposeInMainWorld(
     'api', {
         inserirItem: (data) => ipcRenderer.send('inserir-item', data),
-        listAllItems: () => ipcRenderer.send('list-all-items'),
-        listSomeItems: (tabela) => ipcRenderer.send('list-some-items', tabela),
         getTipos: (data) => ipcRenderer.send('getTipos', data)
     }
 );
 
+//Funções genéricas
+
+
+
+//EventListenenrs
+
+//Desenha na tela a resposta do getTipos
 ipcRenderer.on('getTipos-response', (event, data) => {
-    const [ resultado, tabelas ] = data;
-    console.log('Ipc renderer ON, dados:', resultado, tabelas, data);
+    console.log(`Get tipos:`, data);
+    let i = 1;
+    let metadados = data[data.length - 1]
 
-    const tiposInfo = document.getElementById('tiposInfo');
-    let i = 0;
-    let lista_labels = [];
+    const tiposInfo = document.querySelector('#tiposInfo');
 
-    tiposInfo.removeAttribute('class', 'escondido');
-
-    tabelas.forEach(tabela =>{
-        const label = document.createElement('label');
-        label.innerHTML = tabela;
-        label.setAttribute('class', 'scrap');
-        label.setAttribute('for', `${tabela}`);
-        lista_labels.push(label)
-    });
-        
-    resultado.forEach(infos =>{
-        
-        if (infos.length === 0){
-            return;
-        }
-
-        console.log('Infos:', infos);
-
-        const table = document.createElement('table');
+    metadados.forEach(tabela => {
+       
+        //Criando elementos
         const cabecalho = document.createElement('tr');
+        const table = document.createElement('table');
+        const label = document.createElement('label');
         const select = document.createElement('select');
         const optionVazia = document.createElement('option');
-        const br = document.createElement('br');
+        const br1 = document.createElement('br');
         const br2 = document.createElement('br');
 
-        tiposInfo.appendChild(br2);
-        tiposInfo.appendChild(lista_labels[i]);
-        select.setAttribute('id', `${tabelas[i]}`);
-        tiposInfo.appendChild(br);
-        
-
+        //Colocando classe scrap pra todos os elementos
+        table.setAttribute('class', 'scrap')
+        label.setAttribute('class', 'scrap');
         select.setAttribute('class', 'scrap');
-        tiposInfo.appendChild(select);
+        br1.setAttribute('class', 'scrap');
+        br2.setAttribute('class', 'scrap');
 
+        //Colocando identificação pra quem precisa
+        select.setAttribute('id', i);
+
+        //Colocando nome da label
+        label.value = tabela;
+
+        //Criando option vazia
         optionVazia.disabled = true;
         optionVazia.selected = true;
-        select.appendChild(optionVazia);
 
-        table.setAttribute('class', 'scrap');
-        table.appendChild(cabecalho);
-        tiposInfo.appendChild(table);
-
-
-
-        Object.keys(infos[0]).forEach(chave =>{
-            cabecalho.innerHTML += `<td class="scrap">${chave}</td>`;
-        })
-
-        infos.forEach(coluna => {
-            
-            let option = document.createElement('option');
-    
-            option.setAttribute('class', 'scrap');
-            option.setAttribute('value', coluna.id);
-            option.innerHTML = coluna.id;
-            select.appendChild(option);
-    
-            let tr = document.createElement('tr');
-            tr.setAttribute('class', 'scrap');
-    
-            Object.values(coluna).forEach(valor => {
-                console.log(valor);
-                
-                tr.innerHTML += `<td>${valor}</td>`;
-            })
-    
-            table.appendChild(tr);
+        //Colocando dados no cabecalho
+        Object.keys(data[0]).forEach(chave => {
+            cabecalho.value += `<td>${chave}</td>`
         });
+    
+        //Colocando as coisas uma dentro da outra
+        select.appendChild(optionVazia);
+        table.appendChild(tr);
+        tiposInfo.appendChild(label);
+        tiposInfo.appendChild(select);
+        tiposInfo.appendChild(table);
+        tiposInfo.appendChild(br1);
+        tiposInfo.appendChild(br2);
+        
+        //Incrementando o contador
+        i++
+    });
 
+    //Zerando contador pra igualar o select com os dados
+    i = 0;
+
+
+    data.forEach(obj => {
+        //Selecionando select criado anteriormente
+        let select = document.querySelector(`#${i}`);
+
+        //Criando uma option pra cada dado.
+        let option = createElement('option');
+        option.value = obj.id;
+        select.appendChild(option);
+
+
+        //Incrementando o contador
         i++;
     });
 });
 
-ipcRenderer.on('list-all-items-response', (event, items) => {
-    const tableBody = document.getElementById('listar');
-    tableBody.innerHTML = '';
-
-    items.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.id}</td>
-            <td>${item.nome}</td>
-            <td>${item.preco}</td>
-            <td>${item.peso}</td>
-            <td>${item.descricao}</td>
-        `;
-        tableBody.appendChild(tr);
-    });
-})
-
-ipcRenderer.on('list-some-items-response', (event, items) => {
-    const tableBody = document.getElementById('listar');
-    tableBody.innerHTML = '';
-
-    items.forEach(item => {
-        const tr = document.createElement('tr');
-
-        Object.values(item).forEach(valor => {
-            tr.innerHTML += `<td>${valor}</td>`;
-        })
-
-        tableBody.appendChild(tr);
-    });
-})
-
+//Carrega a janela do electron
 window.addEventListener('DOMContentLoaded', () => {
     const replaceText = (selector, text) => {
         const element = document.getElementById(selector);
