@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const CRUD = require('./models/crud');
 const Item = require('./models/item');
+const Equipamento = require('./models/equipamento');
 const DB = require('./models/db/conexao');
 
 /* 
@@ -42,10 +43,25 @@ function create_window(){
     win.webContents.openDevTools();
 }
 
-function criar_item(data, categoria){
+function criar_item(categoria, data=null, ){
     switch (categoria){
         case 'equipamento':
+            
+            if (data === null){
+                let example_object = new Equipamento({
+                    id: 1,
+                    nome: 'string',
+                    preco: 999.9,
+                    peso: 999.9,
+                    descricao: 'string',
+                    id_equipamento: 1,
+                    tipo: 'string'
+                }, db);
+                return example_object;
+            }
+
             let equipamento = new Equipamento(data, db);
+            console.log(`Equipamento criado com sucesso!`);
             return equipamento;
         case 'armas':
             let arma = new Arma(data, db);
@@ -62,18 +78,6 @@ function criar_item(data, categoria){
     } 
 }
 
-function ligar_tabelas(tabela, id1, id2){
-    let comando = `INSERT INTO ${tabela} VALUES (?, ?);`
-
-    db.run(comando, [id1, id2], (err) => {
-        if (err){
-            console.log('Erro ao inserir dados na tabela de ligação', tabela, [id1, id2]);
-            return;
-        }
-
-        console.log('Dados inseridos na tabela de ligação com sucesso!');
-    });
-}
 //Funções com event listeners
 
 ipcMain.on('getTipos', (event, data) => {
@@ -85,13 +89,15 @@ ipcMain.on('getTipos', (event, data) => {
     }
 
     let operacoes = new CRUD(data, db);
-    console.log(operacoes);
-    
+    let example_object = criar_item(data);
+    console.log(operacoes, example_object);
 
     operacoes.lerTudo().then(dados => {
         dados.push({
-            tabela: data
-        })
+            tabela: data,
+            example_object: example_object
+        });
+        console.log(dados);
         event.reply('getTipos-response', dados);
     });
 })
@@ -100,30 +106,12 @@ ipcMain.on('inserir-item', (event, data) => {
     console.log(data);
 
     let categoria = data.categoria;
-    let fks = data.ids;
     delete data['categoria'];
     delete data['ids'];
 
-    let data_item = {
-        nome: data.nome,
-        preco: data.preco,
-        peso: data.peso,
-        descricao: data.descricao
-    };
-
-    Object.keys(data_item).forEach(chave => {
-        delete data[chave];
-    });
-
-    let item1 = new Item(data_item);
-    let item2 = criar_item(data, categoria);
-
-    item1.criar();
-    item2.criar();
-
-    let tabela_ligacao = `${item1.tabela}_${item2.tabela}`
-
-    ligar_tabelas(tabela_ligacao, item1.id, item2.id);
+    let item = criar_item(categoria, data);
+    console.log(`Item criado: ${item}`);
+    equipamento.criar();
 });
 
 app.whenReady().then(() => {

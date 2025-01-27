@@ -1,10 +1,11 @@
 const SQL = require('sqlite3').verbose();
 const conexao = require('./db/conexao');
-const CRUD = require('./crud');
+const Item = require('./item');
 
-class Arma extends CRUD {
+class Arma extends Item {
     constructor(data){
-        super('armas', db);
+        super(data, db);
+        this.tabela_especifica = `armas`;
         this.id_dano = data.id_dano || null;
         this.id_tipos_arma = data.id_tipos_arma || null;
         this.id_tipos_dano = data.id_tipos_dano || null;

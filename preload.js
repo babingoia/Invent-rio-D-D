@@ -1,5 +1,5 @@
 //Libs
-const {contextBridge, ipcRenderer } =  require('electron');
+const {contextBridge, ipcRenderer, desktopCapturer } =  require('electron');
 
 //Variveis globais
 
@@ -12,20 +12,170 @@ contextBridge.exposeInMainWorld(
 );
 
 //Funções genéricas
+function desenhar_string(objeto, pai){
+    //Obtendo chave do objeto
+    const chave = Object.keys(objeto)[0];
 
+    //Criando elementos
+    const input = document.createElement('input');
+    const label = document.createElement('label');
 
+    //Adicionando scrap
+    input.setAttribute('class', 'scrap');
+    label.setAttribute('class', 'scrap');
 
+    //Adicionando caracteristicas da label
+    label.textContent = chave;
+    label.setAttribute('for', chave);
+
+    //Adicionando caracteristicas do input
+    input.setAttribute('name', chave);
+    input.setAttribute('id', chave);
+    input.type = 'text'
+
+    //Colocando eles no objeto pai
+    pai.appendChild(label);
+    pai.appendChild(input);
+}
+
+function desenhar_number(objeto, pai){
+    //Obtendo chave do objeto
+    const chave = Object.keys(objeto)[0];
+
+    //Criando elementos
+    const input = document.createElement('input');
+    const label = document.createElement('label');
+
+    //Adicionando a classe scrap
+    input.setAttribute('class', 'scrap');
+    label.setAttribute('class', 'scrap');
+
+    //Adicionando caracteristicas da label
+    label.textContent = chave;
+    label.setAttribute('for', chave);
+    
+    //Adicionando caracteristicas do input
+    input.setAttribute('name', chave);
+    input.setAttribute('id', chave);
+    input.type = 'number';
+    input.step = 'any';
+
+    //Adicionando ambos ao objeto pai
+    pai.appendChild(label);
+    pai.appendChild(input);
+}
+
+function desenhar_bool(objeto, pai){
+        //Obtendo chave do objeto
+        const chave = Object.keys(objeto)[0];
+
+        //Criando elementos
+        const checkbox = document.createElement('input');
+        const label = document.createElement('label');
+    
+        //Adicionando a classe scrap
+        checkbox.setAttribute('class', 'scrap');
+        label.setAttribute('class', 'scrap');
+    
+        //Adicionando caracteristicas da label
+        label.textContent = chave;
+        label.setAttribute('for', chave);
+        
+        //Adicionando caracteristicas do checkbox
+        checkbox.setAttribute('name', chave);
+        checkbox.setAttribute('id', chave);
+        checkbox.type = 'checkbox';
+    
+        //Adicionando ambos ao objeto pai
+        pai.appendChild(label);
+        pai.appendChild(checkbox);
+}
+
+function desenhar_option(objeto, pai){
+    //Pegar valor e chave do objeto
+    const valor = Object.values(objeto)[0];
+    const chave = Object.keys(objeto)[0];
+
+    //criar option
+    const option = createElement('option');
+
+    //Adicionando valores ao option
+    option.value = valor;
+    option.textContent = valor;
+
+    //Inserir option no pai
+    pai.appendChild(option)
+}
+
+function criar_select(objeto, pai){
+    //Criando elementos básicos
+    const select = createElement('select');
+    const optionVazia = createElement('option');
+
+    //Adicionando classe scrap
+    select.setAttribute('class', 'scrap');
+
+    //Adicionando caracteristicas do option
+    optionVazia.selected = true;
+    optionVazia.disabled = true;
+
+    //Colocando option no select
+    select.appendChild(optionVazia);
+
+    //Colocando select no objeto pai
+    pai.appendChild(select);
+    return select;
+}
+
+function criar_cabecalho(chaves, tabela){
+    //Cria o cabecalho 
+    const cabecalho = document.createElement('tr');
+
+    //Adiciona os itens no cabecalho
+    objeto.forEach(chave => {
+        cabecalho.innerHTML += `<td>${chave}</td>`
+    });
+
+    //Coloca o cabecalho dentro da tabela
+    tabela.appendChild(cabecalho);
+    return cabecalho;
+}
+
+function criar_tabela(objetos){
+    //Separando as chaves do objeto
+    const chaves = Object.keys(objetos[0]);
+
+    //Criando tabela e cabecalho
+    const tabela = document.createElement('table');
+    criar_cabecalho(chaves,tabela);
+
+    //Colocando classe scrap na tabela
+    tabela.setAttribute('class', 'scrap');
+
+    //Adicionando valores da tabela
+    objetos.forEach( objeto => {
+        const linha = document.createElement('tr');
+
+        Object.values(objeto).forEach(valor =>{
+            linha.innerHTML += `<td>${valor}</td>`;
+        });
+    });
+}
 //EventListenenrs
 
 //Desenha na tela a resposta do getTipos
 ipcRenderer.on('getTipos-response', (event, data) => {
     console.log(`Get tipos:`, data);
-    let i = 1;
+
+    //Declarando contador e lista de tabelas
+    let i = 0;
     let metadados = data[data.length - 1]
 
+    //Puxando a div que vai receber todas as informações
     const tiposInfo = document.querySelector('#tiposInfo');
 
-    metadados.forEach(tabela => {
+    //Criando estrutura de cada tabela
+    Object.keys(metadados).forEach(tabela => {
        
         //Criando elementos
         const cabecalho = document.createElement('tr');
@@ -44,10 +194,11 @@ ipcRenderer.on('getTipos-response', (event, data) => {
         br2.setAttribute('class', 'scrap');
 
         //Colocando identificação pra quem precisa
-        select.setAttribute('id', i);
+        select.setAttribute('id', `select-${i}`);
+        table.setAttribute('id', `table-${i}`);
 
         //Colocando nome da label
-        label.value = tabela;
+        label.textContent = tabela;
 
         //Criando option vazia
         optionVazia.disabled = true;
@@ -55,12 +206,12 @@ ipcRenderer.on('getTipos-response', (event, data) => {
 
         //Colocando dados no cabecalho
         Object.keys(data[0]).forEach(chave => {
-            cabecalho.value += `<td>${chave}</td>`
+            cabecalho.innerHTML += `<td>${chave}</td>`
         });
     
         //Colocando as coisas uma dentro da outra
         select.appendChild(optionVazia);
-        table.appendChild(tr);
+        table.appendChild(cabecalho);
         tiposInfo.appendChild(label);
         tiposInfo.appendChild(select);
         tiposInfo.appendChild(table);
@@ -73,20 +224,30 @@ ipcRenderer.on('getTipos-response', (event, data) => {
 
     //Zerando contador pra igualar o select com os dados
     i = 0;
+    data.pop();
 
 
     data.forEach(obj => {
+        console.log(`Objeto: ${obj}`);
+        
         //Selecionando select criado anteriormente
-        let select = document.querySelector(`#${i}`);
+        const select = document.getElementById(`select-${i}`);
+        const tabela = document.getElementById(`table-${i}`);
 
         //Criando uma option pra cada dado.
-        let option = createElement('option');
+        const option = document.createElement('option');
         option.value = obj.id;
+        option.textContent = obj.id;
         select.appendChild(option);
 
 
-        //Incrementando o contador
-        i++;
+        //Colocando dados na tabela
+        const tr = document.createElement('tr');
+        Object.values(obj).forEach(valor => {
+            tr.innerHTML += `<td>${valor}</td>`;
+        });
+
+        tabela.appendChild(tr);
     });
 });
 

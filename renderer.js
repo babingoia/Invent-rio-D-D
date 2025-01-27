@@ -72,6 +72,7 @@ slcCategoria.addEventListener('change', () => {
     window.api.getTipos(slcCategoria.value);
 
     slcCategoria.setAttribute('class', 'escondido');
+    tiposInfo.removeAttribute('class', 'escondido');
 
     if (!slcCategoria.value){
         deletarScraps();
@@ -81,8 +82,8 @@ slcCategoria.addEventListener('change', () => {
 
 btnCadastrar.addEventListener('click', () => {
     let data = {
-        ids: ids,
-        categoria: slcCategoria.value
+        categoria: slcCategoria.value,
+        id_equipamento: Number(Object.values(ids)[0])
     };
 
     const formChilds = form.querySelectorAll('input');

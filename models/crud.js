@@ -7,6 +7,26 @@ class CRUD {
         this.conexao = conexao;
     }
 
+    ligar_tabelas(dados, tabela_ligacao){
+        let colunas = Object.keys(dados).join(', ');
+        let placeholder = Object.keys(dados).map(() => '?').join(', ');
+        let valores = Object.values(dados);
+        let comando =  `INSERT INTO ${tabela_ligacao} (${colunas}) VALUES (${placeholder})`;
+
+        return new Promise((resolve, reject) => {
+            this.conexao.db.run(comando, valores, (err) =>{
+                if (err){
+                    console.log("Erro ao tentar ligar itens.");
+                    reject(err);
+                    return;
+                }
+
+                console.log("Conexão feita com sucesso!");
+                resolve();
+            });
+        })
+    }
+
     inserir(dados){
         let colunas = Object.keys(dados).join(', ');
         let placeholder = Object.keys(dados).map(() => '?').join(', ');
@@ -14,7 +34,7 @@ class CRUD {
         let comando =  `INSERT INTO ${this.tabela} (${colunas}) VALUES (${placeholder})`;
 
         return new Promise((resolve, reject) => {
-            this.conexao.db.run(comando, valores, (err) => {
+            this.conexao.db.run(comando, valores, function(err) {
                 if (err){
                     console.log('Erro ao inserir dado.');
                     reject(err);

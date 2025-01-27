@@ -3,16 +3,16 @@ const conexao = require('./db/conexao');
 const CRUD = require('./crud');
 
 class Item extends CRUD {
-    constructor(dados, db){
+    constructor(data, db){
         super('itens', db)
-        this.id = dados.id;
-        this.nome = dados.nome;
-        this.preco = dados.preco;
-        this.peso = dados.peso;
-        this.descricao = dados.descricao;
+        this.id_item = data.id;
+        this.nome = data.nome;
+        this.preco = data.preco;
+        this.peso = data.peso;
+        this.descricao = data.descricao;
     }
 
-    criar() {
+    criarItem() {
         const dados = {
             nome: this.nome,
             preco: this.preco,
@@ -23,7 +23,9 @@ class Item extends CRUD {
         return this.inserir(dados).then(id => {
             this.id = id;
             return id;
-        });
+        }).catch(err => {
+            throw err;
+        })
     }
 }
 
