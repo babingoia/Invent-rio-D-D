@@ -68,11 +68,11 @@ class CRUD {
         })
     }
 
-    lerID(id){
-        let comando = `SELECT * FROM ${this.tabela} WHERE id=?`
+    lerID(tabela, id){
+        let comando = `SELECT * FROM ${tabela} WHERE id=?`
 
         return new Promise((resolve, reject) => {
-            this.conexao.db.all(comando, [id], (err, rows) => {
+            this.conexao.db.get(comando, [id], (err, rows) => {
                 if (err){
                     console.log(`Erro ao capturar item com esse id: ${id}`);
                     reject(err);

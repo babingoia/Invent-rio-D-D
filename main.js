@@ -7,6 +7,7 @@ const CRUD = require('./models/crud');
 const Item = require('./models/item');
 const Equipamento = require('./models/equipamento');
 const DB = require('./models/db/conexao');
+const Arma = require('./models/arma');
 
 /* 
 Lembrar de deixar as tabelas no sql seguindo o seguinte padrão:
@@ -45,8 +46,8 @@ function create_window(){
 
 function criar_item(categoria, data=null, ){
     switch (categoria){
+
         case 'equipamento':
-            
             if (data === null){
                 let example_object = new Equipamento({
                     id: 1,
@@ -63,7 +64,22 @@ function criar_item(categoria, data=null, ){
             let equipamento = new Equipamento(data, db);
             console.log(`Equipamento criado com sucesso!`);
             return equipamento;
+
         case 'armas':
+            if (data === null){
+                let example_object = new Arma({
+                    id: 1,
+                    nome: 'string',
+                    preco: 999.9,
+                    peso: 999.9,
+                    descricao: 'string',
+                    id_dano: 1,
+                    id_tipos_arma: 1,
+                    id_tipos_dano: 1
+                }, db);
+                return example_object;
+            }
+
             let arma = new Arma(data, db);
             return arma;
         case 'armaduras':
@@ -105,13 +121,14 @@ ipcMain.on('getTipos', (event, data) => {
 ipcMain.on('inserir-item', (event, data) => {
     console.log(data);
 
-    let categoria = data.categoria;
+    let categoria = 'armas';
+    //let categoria = data.categoria;
     delete data['categoria'];
     delete data['ids'];
 
-    let item = criar_item(categoria, data);
+    let item = criar_item(categoria);
     console.log(`Item criado: ${item}`);
-    equipamento.criar();
+    item.criar();
 });
 
 app.whenReady().then(() => {
