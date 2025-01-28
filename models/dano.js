@@ -1,4 +1,4 @@
-const Arma = require('./arma');
+const CRUD = require('./crud');
 
 class Dano{
     constructor(data){

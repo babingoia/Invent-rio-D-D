@@ -7,7 +7,6 @@ const TiposDano = require('./tipos_dano');
 
 class Arma extends Item {
     constructor(data, db){
-        //Basico
         super(data, db);
         this.tabela_especifica = `armas`;
         this.id_arma = data.id_arma || null;
@@ -17,7 +16,7 @@ class Arma extends Item {
     }
 
     pegar_estrangeiras(){
-        this.dano = this.lerID(this.dano.tabela_especifica,this.dano.id_dano)
+
     }
 
     criar(){
