@@ -94,7 +94,7 @@ function criar_item(categoria, data=null, ){
     } 
 }
 
-//Funções com event listeners
+//IPC MAIN
 
 ipcMain.on('getTipos', (event, data) => {
     console.log("data do get tipos", data);
@@ -130,6 +130,20 @@ ipcMain.on('inserir-item', (event, data) => {
     console.log(`Item criado: ${item}`);
     item.criar();
 });
+
+ipcMain.on('getItens', (event) => {
+    let operacoes = new CRUD(`itens`, db);
+
+    operacoes.lerTudo().then((dados) =>{
+        console.log(dados);
+        
+        event.reply('getItens-response', dados);
+    }).catch((err) => {
+        console.error('Erro ao pegar itens:', err);
+    });
+});
+
+//APP
 
 app.whenReady().then(() => {
     create_window();

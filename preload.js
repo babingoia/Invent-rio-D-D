@@ -7,7 +7,8 @@ const {contextBridge, ipcRenderer, desktopCapturer } =  require('electron');
 contextBridge.exposeInMainWorld(
     'api', {
         inserirItem: (data) => ipcRenderer.send('inserir-item', data),
-        getTipos: (data) => ipcRenderer.send('getTipos', data)
+        getTipos: (data) => ipcRenderer.send('getTipos', data),
+        getItens: () => ipcRenderer.send('getItens')
     }
 );
 
@@ -107,10 +108,10 @@ function desenhar_option(objeto, pai){
     pai.appendChild(option)
 }
 
-function criar_select(objeto, pai){
+function criar_select(pai){
     //Criando elementos básicos
-    const select = createElement('select');
-    const optionVazia = createElement('option');
+    const select = document.createElement('select');
+    const optionVazia = document.createElement('option');
 
     //Adicionando classe scrap
     select.setAttribute('class', 'scrap');
@@ -249,6 +250,30 @@ ipcRenderer.on('getTipos-response', (event, data) => {
 
         tabela.appendChild(tr);
     });
+});
+
+ipcRenderer.on('getItens-response', (event, data) => {
+    const pais = document.querySelectorAll('.dados');
+    let selects = [];
+
+    pais.forEach(pai => {
+        let select = criar_select(pai);
+        selects.push(select);
+    })
+
+    selects.forEach(select => {
+        console.log(select);
+        
+        data.forEach(dado => {
+            const option = document.createElement('option');
+            
+            option.value = dado.id;
+            option.textContent = dado.nome;
+    
+            select.appendChild(option)
+        });
+    });
+
 });
 
 //Carrega a janela do electron

@@ -65,7 +65,7 @@ class CRUD {
                 console.log(`Dados pegos com sucesso na tabela ${this.tabela}`);
                 resolve(rows);
             });
-        })
+        });
     }
 
     lerID(tabela, id){
